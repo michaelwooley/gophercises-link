@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"io/ioutil"
 	"log"
 	"os"
@@ -12,8 +11,6 @@ import (
 )
 
 func main() {
-	fmt.Println("Hello, World")
-
 	err := filepath.Walk("./testcases",
 		func(path string, info os.FileInfo, err error) error {
 			if err != nil {
@@ -26,74 +23,14 @@ func main() {
 				log.Fatal(err)
 			}
 			reader := strings.NewReader(string(s))
-			// doc, err := html.Parse(reader)
-			// if err != nil {
-			// 	log.Fatal(err)
-			// }
 
-			fmt.Println("Starting ", path)
-			// ReadNodes(doc, 0)
+			log.Printf("Starting: %s", path)
 			links := ExtractLinks(reader)
-			fmt.Println(links)
-			// z := html.NewTokenizer(reader)
-			// ReadTokenizer(z)
-			fmt.Println(strings.Repeat("-", 60))
+			log.Printf("Result: %v", links)
 			return nil
 		})
 	if err != nil {
-		log.Println(err)
-	}
-}
-
-// ReadNodes Reads through elements in list.
-func ReadNodes(doc *html.Node, depth int) {
-	for n := doc.FirstChild; n != nil; n = n.NextSibling {
-		if n.Type != html.ElementNode {
-			continue
-		}
-		fmt.Println(strings.Repeat("\t", depth), n.Data, n.Attr)
-		ReadNodes(n, depth+1)
-	}
-}
-
-// ReadTokenizer Reads through the tokenizer
-func ReadTokenizer(z *html.Tokenizer) {
-
-	depth := 0
-	for {
-		tt := z.Next()
-		nTab := strings.Repeat("\t", depth)
-		switch tt {
-		case html.ErrorToken:
-			return
-		case html.TextToken:
-			if depth > 0 {
-				// emitBytes should copy the []byte it receives,
-				// if it doesn't process it immediately.
-				t := z.Text()
-				if len(t) > 0 {
-					fmt.Printf("%s%s\n", nTab, t)
-				}
-			}
-		case html.StartTagToken, html.EndTagToken:
-			fmt.Println(string(z.Raw()))
-			tn, hasAttr := z.TagName()
-			// k, v, moreAttr := z.TagAttr()
-			// fmt.Println(z.Token()) //string(k), string(v), moreAttr)
-
-			// if len(tn) == 1 && tn[0] == 'a' {
-
-			if tt == html.StartTagToken {
-				fmt.Printf("%s<%s>%t\n", nTab, tn, hasAttr)
-				depth++
-			} else {
-				depth--
-				nTab := strings.Repeat("\t", depth)
-				fmt.Printf("%s</%s>\n", nTab, tn)
-			}
-			// }
-		}
-
+		log.Fatal(err)
 	}
 }
 
@@ -119,7 +56,6 @@ func ExtractLinks(reader *strings.Reader) []Link {
 			return links
 		case html.StartTagToken, html.EndTagToken:
 			token := z.Token()
-
 			if token.Data == "a" {
 				if tt == html.StartTagToken {
 					isOpen = true
@@ -136,7 +72,6 @@ func ExtractLinks(reader *strings.Reader) []Link {
 		case html.TextToken:
 			if isOpen {
 				link.Text += z.Token().Data
-				// fmt.Println("Text token:", z.Token().Data)
 			}
 		}
 	}
